@@ -1,10 +1,4 @@
-import Adress from "./AdressModel";
-import Category from "./CategoryModel"
-import Cupoms from "./CupomModel";
-import Order from "./OrderModel";
-import Payment from "./PaymentModel";
-import Product from "./Product";
-import User from "./UserModel";
+import ContactModel from "./ContactModel";
 
 (async () => {
   // await Category.sync({ force: true });

@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/config";
-import User from "./UserModel";
 
 const Adress = sequelize.define(
   'adresses',
@@ -9,10 +8,6 @@ const Adress = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
-    },
-    zip_code: {
-      type: DataTypes.STRING,
-      allowNull: false
     },
     state: {
       type: DataTypes.STRING,
@@ -32,7 +27,7 @@ const Adress = sequelize.define(
     },
     number_forget: {
       type: DataTypes.STRING
-    }
+    },
   },
   {
     freezeTableName: true,
@@ -42,15 +37,6 @@ const Adress = sequelize.define(
   },
   
 );
-Adress.belongsTo(User,{
-  as: 'user',
-  onDelete: 'NO ACTION',
-  onUpdate: 'NO ACTION',
-  foreignKey: {
-    name: 'idUser',
-    allowNull: 'false',
-    field: 'id_user'
-  }
-})
+
 
 export default Adress;

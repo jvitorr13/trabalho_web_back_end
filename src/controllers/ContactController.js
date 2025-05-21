@@ -1,12 +1,11 @@
-import Category from "../models/CategoryModel";
-import Product from "../models/Product";
+import ContactModel from "../models/ContactModel";
 
 const get = async (req, res) => {
   try {
     let id = req.params.id ? req.params.id.toString().replace(/\D/g, "") : null;
 
     if (!id) {
-      let response = await Product.findAll({
+      let response = await ContactModel.findAll({
         order: [["id", "asc"]],
       });
       return res.status(200).send({
@@ -16,7 +15,7 @@ const get = async (req, res) => {
       });
     }
 
-    let response = await Product.findOne({ where: { id } });
+    let response = await ContactModel.findOne({ where: { id } });
 
     if (!response) {
       return res.status(200).send({
@@ -40,34 +39,6 @@ const get = async (req, res) => {
   }
 };
 
-const getByCategoria = async (req, res) => {
-  try {
-    let id = req.params.id ? req.params.id.toString().replace(/\D/g, "") : null;
-
-    if (!id) {
-      throw new Error('Falta O ID meu mano')
-    }
-    let response = await Product.findAll({
-      where: {
-        idCategory: id
-      },
-    });
-    return res.status(200).send({
-      type: "success",
-      message: "Registros carregados com sucesso",
-      data: response,
-    });
-  } catch (error) {
-    return res.status(200).send({
-      type: "error",
-      message: `Ops! Ocorreu um erro`,
-      error: error.message,
-    });
-  }
-};
-
-
-
 const persist = async (req, res) => {
   try {
     let id = req.params.id ? req.params.id.toString().replace(/\D/g, "") : null;
@@ -87,14 +58,24 @@ const persist = async (req, res) => {
 };
 
 const create = async (dados, res) => {
-  let { name, price, image, description, idCategory } = dados;
+  let {
+    zipCode,
+    state,
+    city,
+    street,
+    district,
+    numberForget,
+    idUser,
+  } = dados;
 
-  let response = await Product.create({
-    name,
-    price,
-    image,
-    description,
-    idCategory,
+  let response = await ContactModel.create({
+    zipCode,
+    state,
+    city,
+    street,
+    district,
+    numberForget,
+    idUser,
   });
 
   return res.status(200).send({
@@ -105,7 +86,7 @@ const create = async (dados, res) => {
 };
 
 const update = async (id, dados, res) => {
-  let response = await Product.findOne({ where: { id } });
+  let response = await ContactModel.findOne({ where: { id } });
 
   if (!response) {
     return res.status(200).send({
@@ -136,7 +117,7 @@ const destroy = async (req, res) => {
       });
     }
 
-    let response = await Product.findOne({ where: { id } });
+    let response = await ContactModel.findOne({ where: { id } });
 
     if (!response) {
       return res.status(200).send({
@@ -165,5 +146,4 @@ export default {
   get,
   persist,
   destroy,
-  getByCategoria,
 };
