@@ -1,16 +1,11 @@
 import express from "express";
-import {
-  createCompromisso,
-  getCompromissos,
-  updateCompromisso,
-  getCompromissoById,
-} from "../controllers/CompromissoController.js";
+import ContactController from "../controllers/ContactController.js";
 
 const router = express.Router();
-
-router.post("/", createCompromisso); 
-router.get("/", getCompromissos);
-router.get("/:id", getCompromissoById);
-router.put("/:id", updateCompromisso); 
+router.get("/", ContactController.get);
+router.get("/:id", ContactController.get);
+router.post("/", ContactController.persist);
+router.put("/:id", ContactController.persist);
+router.delete("/:id", ContactController.destroy);
 
 export default router;

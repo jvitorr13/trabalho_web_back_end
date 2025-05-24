@@ -59,23 +59,27 @@ const persist = async (req, res) => {
 
 const create = async (dados, res) => {
   let {
-    zipCode,
-    state,
-    city,
-    street,
-    district,
-    numberForget,
-    idUser,
+    nome,
+    sobrenome,
+    email,
+    telefone,
+    observacao,
+    categoria
   } = dados;
 
+  if (!nome || !sobrenome || !email || !observacao || !categoria) {
+    return res.status(400).send({
+      error: "Todos os campos obrigatórios devem ser preenchidos."
+    });
+  }
+
   let response = await ContactModel.create({
-    zipCode,
-    state,
-    city,
-    street,
-    district,
-    numberForget,
-    idUser,
+    nome,
+    sobrenome,
+    email,
+    telefone,
+    observacao,
+    categoria
   });
 
   return res.status(200).send({
@@ -145,5 +149,7 @@ const destroy = async (req, res) => {
 export default {
   get,
   persist,
+  update,
+  create,
   destroy,
 };
