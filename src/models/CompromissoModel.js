@@ -18,25 +18,25 @@ const Compromisso = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: Contact, // Associação com a tabela contacts
+        model: Contact, 
         key: "id",
       },
     },
     data: {
-      type: DataTypes.DATEONLY, // Apenas data no formato YYYY-MM-DD
+      type: DataTypes.DATEONLY, 
       allowNull: false,
     },
     hora: {
-      type: DataTypes.TIME, // Apenas hora no formato HH:mm:ss
+      type: DataTypes.TIME, 
       allowNull: false,
     },
     duracao: {
-      type: DataTypes.INTEGER, // Duração em minutos
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     descricao: {
       type: DataTypes.TEXT,
-      allowNull: true, // Campo opcional
+      allowNull: true,
     },
   },
   {

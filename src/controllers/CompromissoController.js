@@ -35,7 +35,6 @@ export const updateCompromisso = async (req, res) => {
       return res.status(404).json({ error: "Compromisso não encontrado." });
     }
 
-  
     compromisso.titulo = titulo || compromisso.titulo;
     compromisso.contato_id = contato_id || compromisso.contato_id;
     compromisso.data = data || compromisso.data;
@@ -56,8 +55,8 @@ export const getCompromissoById = async (req, res) => {
     const { id } = req.params;
 
     const compromisso = await Compromisso.findByPk(id, {
-      include: { model: Contact, as: "contato" }, 
-        });
+      include: { model: Contact, as: "contacts" }
+    });
 
     if (!compromisso) {
       return res.status(404).json({ error: "Compromisso não encontrado." });
@@ -72,10 +71,23 @@ export const getCompromissoById = async (req, res) => {
 export const getCompromissos = async (req, res) => {
   try {
     const compromissos = await Compromisso.findAll({
-      include: { model: Contact, as: "contato" },
+      include: { model: Contact, as: "contato" }
     });
     res.status(200).json(compromissos);
   } catch (error) {
     res.status(500).json({ error: "Erro ao buscar compromissos", details: error });
+  }
+};
+
+export const deleteCompromisso = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await Compromisso.destroy({ where: { id } });
+    if (!deleted) {
+      return res.status(404).json({ error: "Compromisso não encontrado." });
+    }
+    res.status(200).json({ message: "Compromisso deletado com sucesso." });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao deletar compromisso", details: error });
   }
 };
