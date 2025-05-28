@@ -10,22 +10,9 @@ export default function Agenda() {
   const [activeModule, setActiveModule] = useState('agenda');
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
+  const [compromissoParaEditar, setCompromissoParaEditar] = useState(null);
 
- const criarCompromisso = async (novoCompromisso) => {
-    try {
-      setLoading(true);
-      const compromissoCriado = await compromissosService.criar(novoCompromisso);
-      setCompromissos([...compromissos, compromissoCriado]);
-      setError(null);
-    } catch (err) {
-      setError('Erro ao criar compromisso');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-    const buscarCompromissos = async () => {
+  const buscarCompromissos = async () => {
     try {
       setLoading(true);
       const data = await compromissosService.listar();
@@ -39,25 +26,44 @@ export default function Agenda() {
     }
   };
 
-  
   useEffect(() => {
     buscarCompromissos();
   }, []);
 
-  const atualizarCompromisso = async (id, dadosAtualizados) => {
+  const handleSalvarCompromisso = async (dadosCompromisso) => {
     try {
       setLoading(true);
-      const compromissoAtualizado = await compromissosService.atualizar(id, dadosAtualizados);
-      setCompromissos(compromissos.map(comp => 
-        comp.id === id ? compromissoAtualizado : comp
-      ));
+      if (compromissoParaEditar) {
+        const compromissoAtualizado = await compromissosService.atualizar(
+          compromissoParaEditar.id, 
+          dadosCompromisso
+        );
+        setCompromissos(compromissos.map(comp => 
+          comp.id === compromissoParaEditar.id ? compromissoAtualizado : comp
+        ));
+      } else {
+        const compromissoCriado = await compromissosService.criar(dadosCompromisso);
+        setCompromissos([...compromissos, compromissoCriado]);
+      }
       setError(null);
+      setShowModal(false);
+      setCompromissoParaEditar(null);
     } catch (err) {
-      setError('Erro ao atualizar compromisso');
+      setError(compromissoParaEditar ? 'Erro ao atualizar compromisso' : 'Erro ao criar compromisso');
       console.error(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditarCompromisso = (compromisso) => {
+    setCompromissoParaEditar(compromisso);
+    setShowModal(true);
+  };
+
+  const handleFecharModal = () => {
+    setShowModal(false);
+    setCompromissoParaEditar(null);
   };
 
   const deletarCompromisso = async (id) => {
@@ -74,22 +80,19 @@ export default function Agenda() {
     }
   };
 
-const getCorPorTitulo = (titulo) => {
-  if (!titulo) return '#4338CA';
-  const tituloLower = titulo.toLowerCase();
-  if (tituloLower.includes('reunião')) return '#3B82F6';
-  if (tituloLower.includes('almoço')) return '#10B981';
-  if (tituloLower.includes('consulta')) return '#8B5CF6';
-  if (tituloLower.includes('apresentação')) return '#F59E0B';
-  return '#4338CA';
-};
+  const getCorPorTitulo = (titulo) => {
+    if (!titulo) return '#4338CA';
+    const tituloLower = titulo.toLowerCase();
+    if (tituloLower.includes('reunião')) return '#3B82F6';
+    if (tituloLower.includes('almoço')) return '#10B981';
+    if (tituloLower.includes('consulta')) return '#8B5CF6';
+    if (tituloLower.includes('apresentação')) return '#F59E0B';
+    return '#4338CA';
+  };
 
-const compromissosFiltrados = compromissos.filter((comp) =>
-  comp.titulo.toLowerCase().includes(searchTerm.toLowerCase())
-);
-
-
-
+  const compromissosFiltrados = compromissos.filter((comp) =>
+    comp.titulo.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="agenda-container">
@@ -129,11 +132,9 @@ const compromissosFiltrados = compromissos.filter((comp) =>
 
         {showModal && (
           <NovoCompromissoModal
-            onClose={() => setShowModal(false)}
-            onSave={(novoCompromisso) => {
-              criarCompromisso(novoCompromisso);
-              setShowModal(false);
-            }}
+            onClose={handleFecharModal}
+            onSave={handleSalvarCompromisso}
+            compromissoParaEditar={compromissoParaEditar}
           />
         )}
 
@@ -167,12 +168,7 @@ const compromissosFiltrados = compromissos.filter((comp) =>
                     <div className="card-actions">
                       <button 
                         className="edit-btn"
-                        onClick={() => {
-                          atualizarCompromisso(compromisso.id, {
-                            ...compromisso,
-                            titulo: `${compromisso.titulo} (Editado)`
-                          });
-                        }}
+                        onClick={() => handleEditarCompromisso(compromisso)}
                       >
                         ✏️
                       </button>
@@ -185,7 +181,7 @@ const compromissosFiltrados = compromissos.filter((comp) =>
                     </div>
                   </div>
                   <div className="card-info">
-                    <span>🕒 {compromisso.horario}</span>
+                    <span>🕒 {compromisso.hora}</span>
                     <span>📅 {compromisso.data}</span>
                   </div>
                   <p className="card-description">{compromisso.descricao}</p>

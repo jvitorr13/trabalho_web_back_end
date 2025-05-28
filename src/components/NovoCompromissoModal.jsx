@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Modal.css';
 
-export default function NovoCompromissoModal({ onClose, onSave }) {
+export default function NovoCompromissoModal({ onClose, onSave, compromissoParaEditar }) {
   const [formData, setFormData] = useState({
     titulo: '',
     contato_id: 2,
@@ -11,11 +11,25 @@ export default function NovoCompromissoModal({ onClose, onSave }) {
     descricao: ''
   });
 
+  useEffect(() => {
+    if (compromissoParaEditar) {
+      setFormData({
+        titulo: compromissoParaEditar.titulo || '',
+        data: compromissoParaEditar.data || '',
+        hora: compromissoParaEditar.hora || '',
+        duracao: compromissoParaEditar.duracao || 60,
+        descricao: compromissoParaEditar.descricao || '',
+        contato_id: compromissoParaEditar.contato_id || 2
+      });
+    }
+  }, [compromissoParaEditar]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
       await onSave(formData);
+      onClose();
     } catch (error) {
       console.error('Erro ao salvar:', error);
     }
@@ -25,7 +39,7 @@ export default function NovoCompromissoModal({ onClose, onSave }) {
     <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
-          <h2>Novo Compromisso</h2>
+          <h2>{compromissoParaEditar ? 'Editar Compromisso' : 'Novo Compromisso'}</h2>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
         
@@ -64,7 +78,7 @@ export default function NovoCompromissoModal({ onClose, onSave }) {
             <label>Duração (minutos)</label>
             <select
               value={formData.duracao}
-              onChange={(e) => setFormData({...formData, duracao: e.target.value})}
+              onChange={(e) => setFormData({...formData, duracao: parseInt(e.target.value)})}
             >
               <option value="30">30 minutos</option>
               <option value="60">1 hora</option>
