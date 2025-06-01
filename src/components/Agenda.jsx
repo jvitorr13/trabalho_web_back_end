@@ -7,7 +7,6 @@ export default function Agenda() {
   const [compromissos, setCompromissos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeModule, setActiveModule] = useState('agenda');
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
   const [compromissoParaEditar, setCompromissoParaEditar] = useState(null);
@@ -35,10 +34,10 @@ export default function Agenda() {
       setLoading(true);
       if (compromissoParaEditar) {
         const compromissoAtualizado = await compromissosService.atualizar(
-          compromissoParaEditar.id, 
+          compromissoParaEditar.id,
           dadosCompromisso
         );
-        setCompromissos(compromissos.map(comp => 
+        setCompromissos(compromissos.map(comp =>
           comp.id === compromissoParaEditar.id ? compromissoAtualizado : comp
         ));
       } else {
@@ -96,33 +95,10 @@ export default function Agenda() {
 
   return (
     <div className="agenda-container">
-      <aside className="sidebar">
-        <div className="sidebar-modules">
-          <button 
-            className={`module-btn ${activeModule === 'lock' ? 'active' : ''}`}
-            onClick={() => setActiveModule('lock')}
-          >
-            🔒
-          </button>
-          <button 
-            className={`module-btn ${activeModule === 'users' ? 'active' : ''}`}
-            onClick={() => setActiveModule('users')}
-          >
-            👥
-          </button>
-          <button 
-            className={`module-btn ${activeModule === 'agenda' ? 'active' : ''}`}
-            onClick={() => setActiveModule('agenda')}
-          >
-            📅
-          </button>
-        </div>
-      </aside>
-
       <main className="main-content">
         <div className="header">
           <h1>Agenda de Compromissos</h1>
-          <button 
+          <button
             className="novo-btn"
             onClick={() => setShowModal(true)}
           >
@@ -158,21 +134,21 @@ export default function Agenda() {
               <div className="no-results">Nenhum compromisso encontrado</div>
             ) : (
               compromissosFiltrados.map((compromisso) => (
-                <div 
-                  key={compromisso.id} 
+                <div
+                  key={compromisso.id}
                   className="compromisso-card"
                   style={{ borderLeft: `4px solid ${getCorPorTitulo(compromisso.titulo)}` }}
                 >
                   <div className="card-header">
                     <h3>{compromisso.titulo}</h3>
                     <div className="card-actions">
-                      <button 
+                      <button
                         className="edit-btn"
                         onClick={() => handleEditarCompromisso(compromisso)}
                       >
                         ✏️
                       </button>
-                      <button 
+                      <button
                         className="delete-btn"
                         onClick={() => deletarCompromisso(compromisso.id)}
                       >

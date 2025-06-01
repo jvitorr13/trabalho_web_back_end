@@ -24,3 +24,26 @@ export const compromissosService = {
     await api.delete(`/compromissos/${id}`);
   }
 };
+
+export const contatoService = {
+  listar: async () => {
+    const response = await api.get('/contatos')
+    return response.data
+  },
+
+  criar: async (contato) => {
+  const response = await api.post('/contatos', contato);
+  return response.data;
+  },
+
+  atualizar: async (id, contato) => {
+  const response = await api.put(`/contatos/${id}`, contato);
+  return response.data;
+  },
+
+  deletar: async (id) => {
+  await api.delete(`/contatos/${id}`);
+  }
+
+
+}
