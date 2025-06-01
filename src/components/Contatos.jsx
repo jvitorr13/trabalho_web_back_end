@@ -1,61 +1,70 @@
-// filepath: c:\Users\JOÃO VITOR\OneDrive\Documentos\reactmoreto\teste\src\components\Contatos.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { contatoService } from '../services/api';
 import NovoContatoModal from './NovoContatoModal';
 import './Contatos.css';
 
 export default function Contatos() {
   const [contatos, setContatos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const [contatoParaEditar, setContatoParaEditar] = useState(null);
 
-  const buscarContatos = async () => {
-    try {
-      setLoading(true);
-      const data = await contatoService.listar();
-      setContatos(data);
-      setError(null);
-    } catch (err) {
-      setError('Erro ao carregar contatos');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+const buscarContatos = async () => {
+  try {
+    setLoading(true);
+    const response = await contatoService.listar();
+    console.log('Resposta da API:', response); // Log para debug
 
+    // Verifica se a resposta é um objeto com propriedade data
+    const data = response.data || response;
+    console.log('Dados extraídos:', data); // Log para debug
+
+    // Garante que temos um array de contatos
+    const contatosArray = Array.isArray(data) ? data : [];
+    console.log('Array de contatos:', contatosArray); // Log para debug
+
+    setContatos(contatosArray);
+    setError(null);
+  } catch (err) {
+    console.error('Erro ao carregar contatos:', err);
+    setError('Erro ao carregar contatos');
+  } finally {
+    setLoading(false);
+  }
+};
   useEffect(() => {
     buscarContatos();
   }, []);
 
-  const handleSalvarContato = async (dadosContato) => {
-    try {
-      setLoading(true);
-      if (contatoParaEditar) {
-        const contatoAtualizado = await contatoService.atualizar(
-          contatoParaEditar.id,
-          dadosContato
-        );
-        setContatos(contatos.map(cont =>
-          cont.id === contatoParaEditar.id ? contatoAtualizado : cont
-        ));
-      } else {
-        const contatoCriado = await contatoService.criar(dadosContato);
-        setContatos([...contatos, contatoCriado]);
-      }
-      setError(null);
-      setShowModal(false);
-      setContatoParaEditar(null);
-    } catch (err) {
-      setError(contatoParaEditar ? 'Erro ao atualizar contato' : 'Erro ao criar contato');
-      console.error(err);
-    } finally {
-      setLoading(false);
+const handleSalvarContato = async (dadosContato) => {
+  try {
+    setLoading(true);
+    if (contatoParaEditar) {
+      const response = await contatoService.atualizar(contatoParaEditar.id, dadosContato);
+      const contatoAtualizado = response.data || response;
+      setContatos(prevContatos =>
+        prevContatos.map(cont => cont.id === contatoParaEditar.id ? contatoAtualizado : cont)
+      );
+    } else {
+      const response = await contatoService.criar(dadosContato);
+      const contatoCriado = response.data || response;
+      console.log('Contato criado:', contatoCriado);
+      setContatos(prevContatos => [...prevContatos, contatoCriado]);
     }
-  };
-
+    setError(null);
+    setShowModal(false);
+    setContatoParaEditar(null);
+    // Recarrega a lista após salvar
+    await buscarContatos();
+  } catch (err) {
+    console.error('Erro ao salvar contato:', err);
+    setError(contatoParaEditar ? 'Erro ao atualizar contato' : 'Erro ao criar contato');
+  } finally {
+    setLoading(false);
+  }
+};
   const handleEditarContato = (contato) => {
     setContatoParaEditar(contato);
     setShowModal(true);
@@ -70,30 +79,31 @@ export default function Contatos() {
     try {
       setLoading(true);
       await contatoService.deletar(id);
-      setContatos(contatos.filter(cont => cont.id !== id));
+      setContatos(prevContatos => prevContatos.filter(cont => cont.id !== id));
       setError(null);
     } catch (err) {
+      console.error('Erro ao deletar contato:', err);
       setError('Erro ao deletar contato');
-      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const contatosFiltrados = contatos.filter((cont) =>
-    cont.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cont.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+const contatosFiltrados = Array.isArray(contatos)
+  ? contatos.filter((cont) => {
+      const nome = cont?.nome ?? '';
+      const email = cont?.email ?? '';
+      return nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             email.toLowerCase().includes(searchTerm.toLowerCase());
+    })
+  : [];
 
   return (
     <div className="contatos-container">
       <main className="main-content">
         <div className="header">
           <h1>Gestão de Contatos</h1>
-          <button 
-            className="novo-btn"
-            onClick={() => setShowModal(true)}
-          >
+          <button className="novo-btn" onClick={() => setShowModal(true)}>
             + Novo Contato
           </button>
         </div>
@@ -128,7 +138,6 @@ export default function Contatos() {
               <div className="col-endereco">ENDEREÇO</div>
               <div className="col-acoes">AÇÕES</div>
             </div>
-
             <div className="table-body">
               {loading ? (
                 <div className="loading">Carregando...</div>
@@ -138,23 +147,19 @@ export default function Contatos() {
                 contatosFiltrados.map((contato) => (
                   <div key={contato.id} className="table-row">
                     <div className="col-nome">
-                      <div className="avatar">{contato.nome[0].toUpperCase()}</div>
+                      <div className="avatar">
+                        {(contato.nome && contato.nome.length > 0) ? contato.nome[0].toUpperCase() : '?'}
+                      </div>
                       <span>{contato.nome} {contato.sobrenome}</span>
                     </div>
                     <div className="col-email">{contato.email}</div>
                     <div className="col-telefone">{contato.telefone}</div>
                     <div className="col-endereco">{contato.endereco}</div>
                     <div className="col-acoes">
-                      <button
-                        className="edit-btn"
-                        onClick={() => handleEditarContato(contato)}
-                      >
+                      <button className="edit-btn" onClick={() => handleEditarContato(contato)}>
                         ✏️
                       </button>
-                      <button
-                        className="delete-btn"
-                        onClick={() => deletarContato(contato.id)}
-                      >
+                      <button className="delete-btn" onClick={() => deletarContato(contato.id)}>
                         🗑️
                       </button>
                     </div>
