@@ -2,20 +2,20 @@ import React, { useState, useEffect } from 'react';
 
 export default function NovoContatoModal({ onClose, onSave, contatoParaEditar }) {
   const [nome, setNome] = useState('');
-  const [sobrenome, setSobrenome] = useState(''); // novo campo
+  const [sobrenome, setSobrenome] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
   const [endereco, setEndereco] = useState('');
 
-  useEffect(() => {
-    if (contatoParaEditar) {
-      setNome(contatoParaEditar.nome || '');
-      setSobrenome(contatoParaEditar.sobrenome || '');
-      setEmail(contatoParaEditar.email || '');
-      setTelefone(contatoParaEditar.telefone || '');
-      setEndereco(contatoParaEditar.endereco || '');
-    }
-  }, [contatoParaEditar]);
+ useEffect(() => {
+  if (!contatoParaEditar) {
+    setNome('');
+    setSobrenome('');
+    setEmail('');
+    setTelefone('');
+    setEndereco('');
+  }
+}, [contatoParaEditar]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -23,9 +23,13 @@ export default function NovoContatoModal({ onClose, onSave, contatoParaEditar })
   };
 
   return (
-    <div className="modal">
-      <div className="modal-content">
-        <h2>{contatoParaEditar ? 'Editar Contato' : 'Novo Contato'}</h2>
+    <div className="modal-overlay">
+      <div className="modal">
+        <div className="modal-header">
+          <h2>{contatoParaEditar ? 'Editar Contato' : 'Novo Contato'}</h2>
+          <button className="close-btn" onClick={onClose}>×</button>
+        </div>
+        
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Nome</label>
@@ -71,10 +75,8 @@ export default function NovoContatoModal({ onClose, onSave, contatoParaEditar })
               onChange={(e) => setEndereco(e.target.value)}
             />
           </div>
-          <div className="modal-actions">
-            <button type="button" onClick={onClose}>
-              Cancelar
-            </button>
+          <div className="modal-buttons">
+            <button type="button" onClick={onClose}>Cancelar</button>
             <button type="submit">Salvar</button>
           </div>
         </form>

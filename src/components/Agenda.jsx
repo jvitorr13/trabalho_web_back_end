@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { compromissosService } from '../services/api';
+import { compromissosService, contatoService } from '../services/api';
 import NovoCompromissoModal from './NovoCompromissoModal';
 import './Agenda.css';
 
 export default function Agenda() {
   const [compromissos, setCompromissos] = useState([]);
+  const [contatos, setContatos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -16,7 +17,6 @@ export default function Agenda() {
       setLoading(true);
       const data = await compromissosService.listar();
       setCompromissos(data);
-      setError(null);
     } catch (err) {
       setError('Erro ao carregar compromissos');
       console.error(err);
@@ -25,8 +25,22 @@ export default function Agenda() {
     }
   };
 
+  const buscarContatos = async () => {
+    try {
+      const resposta = await contatoService.listar();
+      setContatos(resposta.data);
+    } catch (err) {
+      setError('Erro ao carregar contatos');
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
-    buscarCompromissos();
+    const carregarDados = async () => {
+      await buscarContatos();
+      await buscarCompromissos();
+    };
+    carregarDados();
   }, []);
 
   const handleSalvarCompromisso = async (dadosCompromisso) => {
@@ -44,11 +58,10 @@ export default function Agenda() {
         const compromissoCriado = await compromissosService.criar(dadosCompromisso);
         setCompromissos([...compromissos, compromissoCriado]);
       }
-      setError(null);
       setShowModal(false);
       setCompromissoParaEditar(null);
     } catch (err) {
-      setError(compromissoParaEditar ? 'Erro ao atualizar compromisso' : 'Erro ao criar compromisso');
+      setError('Erro ao salvar compromisso');
       console.error(err);
     } finally {
       setLoading(false);
@@ -70,7 +83,6 @@ export default function Agenda() {
       setLoading(true);
       await compromissosService.deletar(id);
       setCompromissos(compromissos.filter(comp => comp.id !== id));
-      setError(null);
     } catch (err) {
       setError('Erro ao deletar compromisso');
       console.error(err);
@@ -93,6 +105,15 @@ export default function Agenda() {
     comp.titulo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const abrirModal = () => {
+    if (contatos.length === 0) {
+      alert('Contatos ainda estão carregando, aguarde...');
+      return;
+    }
+    setCompromissoParaEditar(null);
+    setShowModal(true);
+  };
+
   return (
     <div className="agenda-container">
       <main className="main-content">
@@ -100,7 +121,8 @@ export default function Agenda() {
           <h1>Agenda de Compromissos</h1>
           <button
             className="novo-btn"
-            onClick={() => setShowModal(true)}
+            onClick={abrirModal}
+            disabled={loading || contatos.length === 0}
           >
             + Novo Compromisso
           </button>
@@ -108,9 +130,11 @@ export default function Agenda() {
 
         {showModal && (
           <NovoCompromissoModal
+            key={compromissoParaEditar ? compromissoParaEditar.id : 'novo'}
             onClose={handleFecharModal}
             onSave={handleSalvarCompromisso}
             compromissoParaEditar={compromissoParaEditar}
+            contatos={contatos}
           />
         )}
 
@@ -133,36 +157,45 @@ export default function Agenda() {
             ) : compromissosFiltrados.length === 0 ? (
               <div className="no-results">Nenhum compromisso encontrado</div>
             ) : (
-              compromissosFiltrados.map((compromisso) => (
-                <div
-                  key={compromisso.id}
-                  className="compromisso-card"
-                  style={{ borderLeft: `4px solid ${getCorPorTitulo(compromisso.titulo)}` }}
-                >
-                  <div className="card-header">
-                    <h3>{compromisso.titulo}</h3>
-                    <div className="card-actions">
-                      <button
-                        className="edit-btn"
-                        onClick={() => handleEditarCompromisso(compromisso)}
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        className="delete-btn"
-                        onClick={() => deletarCompromisso(compromisso.id)}
-                      >
-                        🗑️
-                      </button>
+              compromissosFiltrados.map((compromisso) => {
+                const contato = compromisso.contacts; 
+                return (
+                  <div
+                    key={compromisso.id}
+                    className="compromisso-card"
+                    style={{ borderLeft: `4px solid ${getCorPorTitulo(compromisso.titulo)}` }}
+                  >
+                    <div className="card-header">
+                      <h3>{compromisso.titulo}</h3>
+                      <div className="card-actions">
+                        <button
+                          className="edit-btn"
+                          onClick={() => handleEditarCompromisso(compromisso)}
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          className="delete-btn"
+                          onClick={() => deletarCompromisso(compromisso.id)}
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
+                    <div className="card-info">
+                      <span>🕒 {compromisso.hora}</span>
+                      <span>📅 {compromisso.data}</span>
+                      {contato && (
+                        <>
+                          <span>👤</span>
+                          <span>{contato.nome} {contato.sobrenome}</span>
+                        </>
+                      )}
+                    </div>
+                    <p className="card-description">{compromisso.descricao}</p>
                   </div>
-                  <div className="card-info">
-                    <span>🕒 {compromisso.hora}</span>
-                    <span>📅 {compromisso.data}</span>
-                  </div>
-                  <p className="card-description">{compromisso.descricao}</p>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

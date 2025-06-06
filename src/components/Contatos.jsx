@@ -15,15 +15,13 @@ const buscarContatos = async () => {
   try {
     setLoading(true);
     const response = await contatoService.listar();
-    console.log('Resposta da API:', response); // Log para debug
+    console.log('Resposta da API:', response); 
 
-    // Verifica se a resposta é um objeto com propriedade data
     const data = response.data || response;
-    console.log('Dados extraídos:', data); // Log para debug
+    console.log('Dados extraídos:', data); 
 
-    // Garante que temos um array de contatos
     const contatosArray = Array.isArray(data) ? data : [];
-    console.log('Array de contatos:', contatosArray); // Log para debug
+    console.log('Array de contatos:', contatosArray);
 
     setContatos(contatosArray);
     setError(null);
@@ -56,7 +54,6 @@ const handleSalvarContato = async (dadosContato) => {
     setError(null);
     setShowModal(false);
     setContatoParaEditar(null);
-    // Recarrega a lista após salvar
     await buscarContatos();
   } catch (err) {
     console.error('Erro ao salvar contato:', err);
